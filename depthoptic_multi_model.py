@@ -57,9 +57,9 @@ class Model(object):
 
     def get_depth(self, x):
         return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
-        
+
     def get_optic(self, x):
-        return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
+        return self.conv(x, 2, 3, 1, tf.nn.leaky_relu)
 
 # ================= Layer Function =================== #
   #  -----------Pooling Layer------------- #
@@ -224,7 +224,7 @@ class Model(object):
 
         self.pre_depth1_pyramid = [self.pre_depth1_1, self.pre_depth1_2, self.pre_depth1_3, self.pre_depth1_4]
         self.pre_depth2_pyramid = [self.pre_depth2_1, self.pre_depth2_2, self.pre_depth2_3, self.pre_depth2_4]
-        self.pre_optic_pyramid  = [self.pre_optic1, self.pre_optic2, self.pre_optic3, self.pre_optic4]
+        self.pre_optic_pyramid  = tf.negative([self.pre_optic1, self.pre_optic2, self.pre_optic3, self.pre_optic4])
 
         self.pre_depth2_1_optic = tf_warp(self.pre_depth1_1, self.raw_gt_optic, FLAGS.input_height, FLAGS.input_width)
 
