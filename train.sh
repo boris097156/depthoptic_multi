@@ -10,6 +10,6 @@ python depthoptic_multi_main.py\
     --using_gpu 0\
     --input_height 128\
     --input_width 256\
-    --num_epochs 200\
+    --total_epochs 200\
     --train_network disnet\
     --build_network disnet\
