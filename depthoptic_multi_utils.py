@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import time
 import imageio
 
 flags = tf.app.flags
