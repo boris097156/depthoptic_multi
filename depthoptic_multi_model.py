@@ -246,7 +246,7 @@ class Model(object):
             self.optic_loss               = self.pyramid_loss(self.pre_optic_pyramid, self.gt_optic_pyramid)
             self.total_loss               = self.depth_loss + self.depth_loss
 
-        self.train_op = tf.train.AdamOptimizer(1e-4).minimize(total_loss)
+        self.train_op = tf.train.AdamOptimizer(1e-4).minimize(self.total_loss)
             
     def build_errors(self):
         with tf.variable_scope('errors', reuse=self.reuse_variables):
