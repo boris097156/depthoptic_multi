@@ -50,7 +50,7 @@ def configure():
     return config
 
 def train():
-    with tf.Graph().as_default(), tf.device('/cpu:0'):
+    with tf.Graph().as_default():
         train_dataset, train_datasize = create_dataset(FLAGS.datapath_file)
         train_dataset = train_dataset.shuffle(train_datasize + FLAGS.batch_size)
         iterator = tf.data.Iterator.from_structure(train_dataset.output_types, train_dataset.output_shapes)
