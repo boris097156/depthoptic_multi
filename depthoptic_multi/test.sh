@@ -16,4 +16,4 @@ python depthoptic_multi_main.py\
     --build_network disnet\
     --load_network disnet\
     --save_img=false\
-    --save_gif=false
+    --save_gif=true

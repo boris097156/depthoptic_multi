@@ -13,6 +13,7 @@ class Model(object):
         self.input_img2 = img2
         self.gt_depth1  = depth1
         self.gt_depth2  = depth2
+        self.raw_gt_optic = optic
         tmp1, tmp2 = tf.split(optic, num_or_size_splits=2, axis=1)               #(-1, 2, height, width)
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
@@ -24,8 +25,10 @@ class Model(object):
         self.build_model()
         self.build_outputs()
         self.build_losses()
+        self.build_errors()
 
-        assert FLAGS.mode == 'train'
+        if FLAGS.mode == 'test':
+            return
 
         self.build_summaries()
 
@@ -223,9 +226,9 @@ class Model(object):
         self.pre_depth2_pyramid = [self.pre_depth2_1, self.pre_depth2_2, self.pre_depth2_3, self.pre_depth2_4]
         self.pre_optic_pyramid  = [self.pre_optic1, self.pre_optic2, self.pre_optic3, self.pre_optic4]
 
-        self.pre_depth2_1_optic = tf_warp(self.pre_depth1_1, self.gt_optic, FLAGS.input_height, FLAGS.input_width)
+        self.pre_depth2_1_optic = tf_warp(self.pre_depth1_1, self.raw_gt_optic, FLAGS.input_height, FLAGS.input_width)
 
-    def pyramid_loss(pre_pyramid, gt_pyramid):
+    def pyramid_loss(self, pre_pyramid, gt_pyramid):
         l1                      = [tf.abs(pre_pyramid[i] - gt_pyramid[i]) for i in range(4)]
         l1_loss                 = [tf.reduce_mean(l) for l in l1]    
         diff                    = [(pre_pyramid[i] - gt_pyramid[i]) for i in range(4)]
@@ -242,24 +245,38 @@ class Model(object):
             self.depth2_loss              = self.pyramid_loss(self.pre_depth2_pyramid, self.gt_depth2_pyramid)
             self.depth_loss               = self.depth1_loss + self.depth2_loss
             self.optic_loss               = self.pyramid_loss(self.pre_optic_pyramid, self.gt_optic_pyramid)
-            self.G_loss                   = self.depth_loss + self.optic_loss
-
+            self.G_loss                   = self.depth_loss + self.depth_loss
+            
+    def build_errors(self):
+        with tf.variable_scope('errors', reuse=self.reuse_variables):
+            self.depth1_l1     = tf.reduce_mean(tf.abs(self.pre_depth1_pyramid[0]    - self.gt_depth1_pyramid[0]))
+            self.depth2_l1     = tf.reduce_mean(tf.abs(self.pre_depth2_pyramid[0]    - self.gt_depth2_pyramid[0]))
+            self.depth1_l2     = tf.reduce_mean(tf.square(self.pre_depth1_pyramid[0] - self.gt_depth1_pyramid[0]))
+            self.depth2_l2     = tf.reduce_mean(tf.square(self.pre_depth2_pyramid[0] - self.gt_depth2_pyramid[0]))
+            
+            self.depth_l1      = (self.depth1_l1 + self.depth2_l1)/2
+            self.depth_l2      = (self.depth1_l2 + self.depth2_l2)/2
+            self.depth_consist = tf.reduce_mean(tf.abs(self.pre_depth2_1_optic       - self.pre_depth2_pyramid[0]))
+            
+    def of_to_rgb(self, optic_flow):
+        optic_r, optic_g = tf.split(optic_flow, num_or_size_splits=2, axis=3)
+        extra_b = tf.zeros(shape=tf.shape(optic_r), dtype=tf.float32)
+        return tf.concat([optic_r, optic_g, extra_b], axis=3)
+    
     def build_summaries(self):
-        self.pre_optic1, self.pre_optic2  = tf.split(self.pre_optic_pyramid[0], num_or_size_splits=2, axis=3)
-        self.gt_optic1, self.gt_optic2    = tf.split(self.gt_optic,             num_or_size_splits=2, axis=3)
+        self.pre_optic_rgb  = self.of_to_rgb(self.pre_optic_pyramid[0])
+        self.gt_optic_rgb   = self.of_to_rgb(self.gt_optic_pyramid[0])
 
         with tf.device('/cpu:0'):
             tf.summary.image('input1',         self.input_img1,             collections=self.model_collection)
             tf.summary.image('pre_depth1',     self.pre_depth1_pyramid[0],  collections=self.model_collection)
             tf.summary.image('gt_depth1',      self.gt_depth1_pyramid[0],   collections=self.model_collection)
-            tf.summary.image('pre_optic1',     self.pre_optic1,             collections=self.model_collection)
-            tf.summary.image('gt_optic1',      self.gt_optic1,              collections=self.model_collection)
-
             tf.summary.image('input2',         self.input_img2,             collections=self.model_collection)
             tf.summary.image('pre_depth2',     self.pre_depth2_pyramid[0],  collections=self.model_collection)
             tf.summary.image('gt_depth2',      self.gt_depth2_pyramid[0],   collections=self.model_collection)
-            tf.summary.image('pre_optic2',     self.pre_optic2,             collections=self.model_collection)
-            tf.summary.image('gt_optic2',      self.gt_optic2,              collections=self.model_collection)
+            
+            tf.summary.image('pre_optic',      self.pre_optic_rgb,          collections=self.model_collection)
+            tf.summary.image('gt_optic',       self.gt_optic_rgb,           collections=self.model_collection)
             
             tf.summary.scalar('total_loss',    self.G_loss,                 collections=self.model_collection)
             tf.summary.scalar('depth_loss',    self.depth_loss,             collections=self.model_collection)
