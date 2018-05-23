@@ -281,3 +281,4 @@ class Model(object):
             tf.summary.scalar('depth_loss',    self.depth_loss)
             tf.summary.scalar('optic_loss',    self.optic_loss)
             tf.summary.scalar('consist_loss',  self.consistency_loss)
+            self.merge_op = tf.summary.merge_all()

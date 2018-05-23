@@ -81,7 +81,7 @@ def train():
                     if (step%int(steps_per_epoch/10)) == 0 and global_step > 0:
                         summary_writer.add_summary(summary, global_step+1)
                         elapsed_time, estimated_time_arrival = record_time(start_time, ((total_steps-global_step)/global_step))
-                        print("{} epoch:{}/{} step:{} loss:{:.5f} ET:{:.2f}h ETA:{:.2f}h {:.4f}%".format(FLAGS.model_name, \
+                        print("{} epoch:{}/{} step:{} loss:{:.5f} ET:{:.2f}h ETA:{:.2f}h ({:.4f}%)".format(FLAGS.model_name, \
                             epoch+1, FLAGS.total_epochs, global_step, loss, elapsed_time, \
                             estimated_time_arrival, float(global_step*100)/total_steps))
                     global_step += 1
