@@ -30,7 +30,6 @@ flags.DEFINE_float(          'init_lr',             3e-5,     'initial learning 
 flags.DEFINE_integer(      'using_gpu',                0,     'which GPU use for training')
 flags.DEFINE_string(   'log_directory',        'record/',     'directory to save checkpoints and summaries')
 flags.DEFINE_string( 'checkpoint_path',               '',     'path to a specific checkpoint to load')
-
 flags.DEFINE_string(   'build_network',         'disnet',     'train network componants, disnet, ae')
 flags.DEFINE_string(   'train_network',         'disnet',     'train network componants, disnet, ae')
 flags.DEFINE_string(    'load_network',               '',     'train network componants, disnet, ae')
@@ -39,7 +38,6 @@ flags.DEFINE_string(  'load_directory',               '',     'pretrained model'
 flags.DEFINE_string('output_directory',        'output/',     'directory for output')
 flags.DEFINE_boolean(       'save_gif',            False,     'if set, will save gif')
 flags.DEFINE_boolean(       'save_img',             True,     'if set, will save img')
-
 
 print("Using GPU:{}".format(FLAGS.using_gpu))
 os.environ['CUDA_VISIBLE_DEVICES']=('{}'.format(FLAGS.using_gpu))
