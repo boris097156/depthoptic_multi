@@ -57,6 +57,7 @@ class Model(object):
 
     def get_depth(self, x):
         return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
+        
     def get_optic(self, x):
         return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
 
@@ -163,27 +164,27 @@ class Model(object):
             skip3 = conv4                                                      # H/4
 
         with tf.variable_scope('decoder',reuse=model_reuse):
-            depth4 = self.get_depth(conv11)                                  # H/8
+            depth4  = self.get_depth(conv11)                                  # H/8
             optic4  = self.get_optic(conv11)
-            udepth4  = self.upsample_nn(depth4, 2)                               # H/4
+            udepth4 = self.upsample_nn(depth4, 2)                               # H/4
             upconv3 = upconv(conv11,               64, 3, 2)                   # H/4
             concat3 = tf.concat([upconv3, skip3, udepth4], 3)                   # H/4
             iconv3  = conv(concat3,                64, 3, 1)                   # H/4
-            depth3   = self.get_depth(iconv3)                                   # H/4
+            depth3  = self.get_depth(iconv3)                                   # H/4
             optic3  = self.get_optic(iconv3)
 
-            udepth3  = self.upsample_nn(depth3, 2)                               # H/2
+            udepth3 = self.upsample_nn(depth3, 2)                               # H/2
             upconv2 = upconv(iconv3,               32, 3, 2)                   # H/2
             concat2 = tf.concat([upconv2, skip2, udepth3], 3)                   # H/2
             iconv2  = conv(concat2,                32, 3, 1)                   # H/2
-            depth2   = self.get_depth(iconv2)                                   # H/2
+            depth2  = self.get_depth(iconv2)                                   # H/2
             optic2  = self.get_optic(iconv2)
 
-            udepth2  = self.upsample_nn(depth2, 2)                               # H
+            udepth2 = self.upsample_nn(depth2, 2)                               # H
             upconv1 = upconv(iconv2,               16, 3, 2)                   # H
             concat1 = tf.concat([upconv1, skip1, udepth2], 3)                   # H
             iconv1  = conv(concat1,                16, 3, 1)                   # H
-            depth1   = self.get_depth(iconv1)                                   # H
+            depth1  = self.get_depth(iconv1)                                   # H
             optic1  = self.get_optic(iconv1)
             #print(depth1.shape)    (-1, 128, 256, 2)
             #print(optic1.shape)    (-1, 128, 256, 2)
@@ -206,7 +207,7 @@ class Model(object):
             with tf.variable_scope('model', reuse=self.reuse_variables):
                 self.pre_depth1, self.pre_depth2, self.pre_depth3, self.pre_depth4, \
                     self.pre_optic1, self.pre_optic2, self.pre_optic3, self.pre_optic4  =\
-                                            self.build_drn(self.input_img1, self.input_img2, model_reuse=False)
+                        self.build_drn(self.input_img1, self.input_img2, model_reuse=False)
 
     def build_outputs(self):
         self.build_var_list()
