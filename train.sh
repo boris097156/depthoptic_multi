@@ -6,7 +6,7 @@ python depthoptic_multi_main.py\
     --datapath_file /home/derlee/depth_estimation/data/train_list.txt\
     --log_directory record/\
     --init_lr 1e-4\
-    --batch_size 4\
+    --batch_size 8\
     --using_gpu 0\
     --input_height 128\
     --input_width 256\
