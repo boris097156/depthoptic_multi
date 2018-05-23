@@ -27,7 +27,7 @@ flags.DEFINE_integer(    'input_width',              480,     'input width')
 flags.DEFINE_integer(     'batch_size',                8,     'size of batch')
 flags.DEFINE_integer(     'num_epochs',                1,     'number of epochs')
 flags.DEFINE_float(          'init_lr',             3e-5,     'initial learning rate')
-flags.DEFINE_string(       'using_gpu',                0,     'which GPU use for training')
+flags.DEFINE_integer(      'using_gpu',                0,     'which GPU use for training')
 flags.DEFINE_integer(    'num_threads',                8,     'number of threads to use for data loading')
 flags.DEFINE_string(   'log_directory',        'record/',     'directory to save checkpoints and summaries')
 flags.DEFINE_string( 'checkpoint_path',               '',     'path to a specific checkpoint to load')
@@ -51,7 +51,7 @@ def configure():
     #config.gpu_options.allow_growth = True
     config.gpu_options.per_process_gpu_memory_fraction = 0.5    
     return config
-    
+
 def train():
     with tf.Graph().as_default(), tf.device('/cpu:0'):
         train_dataset, train_datasize = create_dataset(FLAGS.datapath_file)
