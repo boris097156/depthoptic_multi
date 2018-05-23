@@ -17,7 +17,7 @@ class Model(object):
         tmp1, tmp2 = tf.split(optic, num_or_size_splits=2, axis=1)               #(-1, 2, height, width)
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
-        self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
+        self.gt_optic = tf.negative(tf.concat([tmp1, tmp2], axis=3))                          #(-1, height, width, 2)
         
         self.reuse_variables  = reuse_variables
 
@@ -224,7 +224,7 @@ class Model(object):
 
         self.pre_depth1_pyramid = [self.pre_depth1_1, self.pre_depth1_2, self.pre_depth1_3, self.pre_depth1_4]
         self.pre_depth2_pyramid = [self.pre_depth2_1, self.pre_depth2_2, self.pre_depth2_3, self.pre_depth2_4]
-        self.pre_optic_pyramid  = tf.negative([self.pre_optic1, self.pre_optic2, self.pre_optic3, self.pre_optic4])
+        self.pre_optic_pyramid  = [self.pre_optic1, self.pre_optic2, self.pre_optic3, self.pre_optic4]
 
         self.pre_depth2_1_optic = tf_warp(self.pre_depth1_1, self.raw_gt_optic, FLAGS.input_height, FLAGS.input_width)
 
