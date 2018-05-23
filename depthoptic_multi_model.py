@@ -244,7 +244,7 @@ class Model(object):
             self.depth2_loss              = self.pyramid_loss(self.pre_depth2_pyramid, self.gt_depth2_pyramid)
             self.depth_loss               = self.depth1_loss + self.depth2_loss
             self.optic_loss               = self.pyramid_loss(self.pre_optic_pyramid, self.gt_optic_pyramid)
-            self.G_loss                   = self.depth_loss + self.depth_loss
+            self.total_loss                   = self.depth_loss + self.depth_loss
             
     def build_errors(self):
         with tf.variable_scope('errors', reuse=self.reuse_variables):
@@ -277,7 +277,7 @@ class Model(object):
             tf.summary.image('pre_optic',      self.pre_optic_rgb)
             tf.summary.image('gt_optic',       self.gt_optic_rgb)
             
-            tf.summary.scalar('total_loss',    self.G_loss)
+            tf.summary.scalar('total_loss',    self.total_loss)
             tf.summary.scalar('depth_loss',    self.depth_loss)
             tf.summary.scalar('optic_loss',    self.optic_loss)
             tf.summary.scalar('consist_loss',  self.consistency_loss)
