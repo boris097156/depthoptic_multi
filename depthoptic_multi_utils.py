@@ -166,3 +166,15 @@ def tf_warp(img, flow, H, W):
         # compute output
         out = tf.add_n([wa*Ia, wb*Ib, wc*Ic, wd*Id])
         return out
+
+def count_parameters():
+    total_num_parameters = 0
+    for variable in tf.trainable_variables():
+        total_num_parameters += np.array(variable.get_shape().as_list()).prod()
+    return total_num_parameters
+
+def record_time(start_time, remain_ratio):
+    now_time = time.time()
+    elapsed_time = (now_time - start_time)/3600
+    estimated_time_arrival = elapsed_time*remain_ratio
+    return elapsed_time, estimated_time_arrival

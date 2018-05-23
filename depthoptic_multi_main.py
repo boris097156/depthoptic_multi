@@ -27,7 +27,7 @@ flags.DEFINE_integer(    'input_width',              480,     'input width')
 flags.DEFINE_integer(     'batch_size',                8,     'size of batch')
 flags.DEFINE_integer(     'num_epochs',                1,     'number of epochs')
 flags.DEFINE_float(          'init_lr',             3e-5,     'initial learning rate')
-flags.DEFINE_string(            'gpus',              '0',     'which GPU use for training')
+flags.DEFINE_string(       'using_gpu',                0,     'which GPU use for training')
 flags.DEFINE_integer(    'num_threads',                8,     'number of threads to use for data loading')
 flags.DEFINE_string(   'log_directory',        'record/',     'directory to save checkpoints and summaries')
 flags.DEFINE_string( 'checkpoint_path',               '',     'path to a specific checkpoint to load')
@@ -42,129 +42,58 @@ flags.DEFINE_boolean(       'save_gif',            False,     'if set, will save
 flags.DEFINE_boolean(       'save_img',             True,     'if set, will save img')
 
 
-gpu_list = FLAGS.gpus.strip().split()
-print("Using GPU:{}".format(gpu_list))
-os.environ['CUDA_VISIBLE_DEVICES']=','.join([str(i) for i in gpu_list])
+print("Using GPU:{}".format(FLAGS.using_gpu))
+os.environ['CUDA_VISIBLE_DEVICES']=('{}'.format(FLAGS.using_gpu))
 
-def count_text_lines(file_path):
-    f = open(file_path, 'r')
-    lines = f.readlines()
-    f.close()
-    return len(lines)
-
+def configure():
+    config = tf.ConfigProto()
+    config.allow_soft_placement = True
+    #config.gpu_options.allow_growth = True
+    config.gpu_options.per_process_gpu_memory_fraction = 0.5    
+    return config
+    
 def train():
     with tf.Graph().as_default(), tf.device('/cpu:0'):
-        global_step = tf.Variable(0, trainable=False)
-
-        num_training_samples = count_text_lines(FLAGS.datapath_file)
-        steps_per_epoch      = np.floor(num_training_samples / FLAGS.batch_size).astype(np.int32)
-        num_total_steps      = FLAGS.num_epochs * steps_per_epoch
-        num_steps            = int(num_training_samples/FLAGS.batch_size)
-        boundaries           = [np.int32((3/5) * num_total_steps), np.int32((4/5) * num_total_steps)]
-        values               = [FLAGS.init_lr, FLAGS.init_lr/2, FLAGS.init_lr/4]
-        learning_rate        = tf.train.piecewise_constant(global_step, boundaries, values)
-
-        print("total number of samples: {}".format(num_training_samples))
-        print("total number of steps:   {}".format(num_total_steps))
-        train_dataset, train_datasize      = create_dataset(FLAGS.datapath_file)
+        train_dataset, train_datasize = create_dataset(FLAGS.datapath_file)
         train_dataset = train_dataset.shuffle(train_datasize + FLAGS.batch_size)
-        
         iterator = tf.data.Iterator.from_structure(train_dataset.output_types, train_dataset.output_shapes)
         train_init_op = iterator.make_initializer(train_dataset)
         img1, depth1, img2, depth2, optic = iterator.get_next()
         optic = tf.reshape(optic, [-1, 2, FLAGS.input_height, FLAGS.input_width])
-        
-        ## split data for each gpu
-        img1_splits     = tf.split(img1,  len(gpu_list), 0)
-        depth1_splits      = tf.split(depth1,   len(gpu_list), 0)
-        img2_splits     = tf.split(img2,  len(gpu_list), 0)
-        depth2_splits      = tf.split(depth2,   len(gpu_list), 0)
-        optic_splits     = tf.split(optic,   len(gpu_list), 0)
+        model = Model(img1, depth1, img2, depth2, optic, None)
 
-        G_tower_grads    = []
-        G_tower_losses   = []
-        G_opt_step           = tf.train.AdamOptimizer(learning_rate)
+        print("Training Data: {}".format(train_datasize))
+        print("Trainable Parameters: {}".format(count_parameters()))
 
-        reuse_variables  = None
-        with tf.variable_scope(tf.get_variable_scope()):
-            for i in xrange(len(gpu_list)):
-                with tf.device('/gpu:%d' % i):
-                    model           = Model(img1_splits[i], depth1_splits[i], img2_splits[i], depth2_splits[i], \
-                                            optic_splits[i], reuse_variables, i)
-                    G_loss          = model.optic_loss
-                    G_tower_losses.append(G_loss)
-                    reuse_variables = True
-                    G_grads         = G_opt_step.compute_gradients(G_loss,var_list=\
-                    [var for var_list in [getattr(model, net+"_vars") for net in [FLAGS.train_network]] for var in var_list])
-                    G_tower_grads.append(G_grads)
+        with tf.Session(config=configure()) as sess:
+            sess.run(tf.global_variables_initializer())
+            sess.run(tf.local_variables_initializer())
+            summary_writer = tf.summary.FileWriter("{}/{}".format(FLAGS.log_directory, FLAGS.model_name), sess.graph)
+            steps_per_epoch = int(train_datasize/FLAGS.batch_size)
+            total_steps = FLAGS.total_epochs * steps_per_epoch
+            start_time = time.time()
+            saver = tf.train.Saver()
+            global_step = 0
+            print("Training image:{}".format(train_datasize))
+            print("Batch size:{}   Step per epoch:{}".format(FLAGS.batch_size, steps_per_epoch))
+            print("Total epochs:{}  Total steps:{}".format(FLAGS.total_epochs, total_steps))
+            for epoch in range(FLAGS.total_epochs):
+                sess.run(train_init_op)
+                for step in range(steps_per_epoch):
+                    summary, loss, _ = sess.run([model.merge_op, model.total_loss, model.train_op])
+                    if (step%int(steps_per_epoch/10)) == 0 and global_step > 0:
+                        summary_writer.add_summary(summary, global_step+1)
+                        elapsed_time, estimated_time_arrival = record_time(start_time, ((total_steps-global_step)/global_step))
+                        print("{} epoch:{}/{} step:{} loss:{:.5f} ET:{:.2f}h ETA:{:.2f}h {:.4f}%".format(FLAGS.model_name, \
+                            epoch+1, FLAGS.total_epochs, global_step, loss, elapsed_time, \
+                            estimated_time_arrival, float(global_step*100)/total_steps))
+                    global_step += 1
 
-        ## G update
-        G_grads                     = average_gradients(G_tower_grads)
-        apply_G_gradient_op         = G_opt_step.apply_gradients(G_grads, global_step=global_step)
-        G_loss                      = tf.reduce_mean(G_tower_losses)
+                if epoch>0 and epoch%2==0:
+                    saver.save(sess, '{}/{}/{}'.format(FLAGS.log_directory, FLAGS.model_name, FLAGS.model_name), \
+                        global_step=global_step)
+            print("{} Complete Training".format(FLAGS.model_name))
 
-        summary_op                  = tf.summary.merge_all('model_0')
-
-        # SESSION
-        config     = tf.ConfigProto()
-        config.allow_soft_placement=True
-        #config.gpu_options.allow_growth = True
-        config.gpu_options.per_process_gpu_memory_fraction = 0.4
-        sess       = tf.Session(config=config)
-
-        # SAVER
-        summary_writer     = tf.summary.FileWriter(FLAGS.log_directory + '/' + FLAGS.model_name, sess.graph)
-        
-        train_saver = {}
-        for net in [FLAGS.build_network]:
-            train_saver[net] = tf.train.Saver(var_list=getattr(model, net + "_vars"))
-
-        # COUNT PARAMS 
-        total_num_parameters = 0
-        for variable in tf.trainable_variables():
-            total_num_parameters += np.array(variable.get_shape().as_list()).prod()
-        print("number of trainable parameters: {}".format(total_num_parameters))
-
-        # INIT
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.local_variables_initializer())
-        coordinator = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(sess=sess, coord=coordinator)
-
-        # Restore
-        for net in [FLAGS.load_network]:
-            if net == '':
-                break
-            print("---Load network : " + net)
-            train_saver[net].restore(sess,FLAGS.load_directory + net.upper())
-            print("Load network complete")
-
-        # GO!
-        start_step = global_step.eval(session=sess)
-        start_time = time.time()
-        print('Start training')
-        for epoch in range(FLAGS.num_epochs):
-            sess.run(train_init_op)
-            for step in range(num_steps):
-                before_op_time = time.time()
-                _, loss_value, summary_str = sess.run([apply_G_gradient_op, G_loss, summary_op])
-                duration = time.time() - before_op_time
-                if step % 100 == 0:
-                    examples_per_sec = FLAGS.batch_size / duration
-                    time_sofar = (time.time() - start_time) / 3600
-                    training_time_left = (num_total_steps / (step+num_steps*epoch) - 1.0) * time_sofar
-                    print_string = 'batch {:>6} | examples/s: {:4.2f} | \
-                        loss: {:.5f} | time elapsed: {:.2f}h | time left: {:.2f}h'
-                    print(print_string.format((step+num_steps*epoch), examples_per_sec, loss_value, time_sofar, training_time_left))
-                    summary_writer.add_summary(summary_str, global_step=step+num_steps*epoch)
-                    
-                if step and step % 1000 == 0:
-                    for net in [FLAGS.train_network]:
-                        train_saver[net].save(sess, FLAGS.log_directory + '/' + FLAGS.model_name+'/'+net.upper())
-                        
-        for net in [FLAGS.train_network]:
-            train_saver[net].save(sess, FLAGS.log_directory + '/' + FLAGS.model_name+'/'+net.upper())
-        print('Training {} complete'.format(FLAGS.model_name))
 
 def test():
     print ('Create dataset')

@@ -8,7 +8,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 class Model(object):
-    def __init__(self, img1, depth1, img2, depth2, optic, reuse_variables=None, model_index=0):
+    def __init__(self, img1, depth1, img2, depth2, optic, reuse_variables=None):
         self.input_img1 = img1
         self.input_img2 = img2
         self.gt_depth1  = depth1
@@ -19,7 +19,6 @@ class Model(object):
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
         
-        self.model_collection = ['model_' + str(model_index)]
         self.reuse_variables  = reuse_variables
 
         self.build_model()
@@ -268,17 +267,17 @@ class Model(object):
         self.gt_optic_rgb   = self.of_to_rgb(self.gt_optic_pyramid[0])
 
         with tf.device('/cpu:0'):
-            tf.summary.image('input1',         self.input_img1,             collections=self.model_collection)
-            tf.summary.image('pre_depth1',     self.pre_depth1_pyramid[0],  collections=self.model_collection)
-            tf.summary.image('gt_depth1',      self.gt_depth1_pyramid[0],   collections=self.model_collection)
-            tf.summary.image('input2',         self.input_img2,             collections=self.model_collection)
-            tf.summary.image('pre_depth2',     self.pre_depth2_pyramid[0],  collections=self.model_collection)
-            tf.summary.image('gt_depth2',      self.gt_depth2_pyramid[0],   collections=self.model_collection)
+            tf.summary.image('input1',         self.input_img1)
+            tf.summary.image('pre_depth1',     self.pre_depth1_pyramid[0])
+            tf.summary.image('gt_depth1',      self.gt_depth1_pyramid[0])
+            tf.summary.image('input2',         self.input_img2)
+            tf.summary.image('pre_depth2',     self.pre_depth2_pyramid[0])
+            tf.summary.image('gt_depth2',      self.gt_depth2_pyramid[0])
             
-            tf.summary.image('pre_optic',      self.pre_optic_rgb,          collections=self.model_collection)
-            tf.summary.image('gt_optic',       self.gt_optic_rgb,           collections=self.model_collection)
+            tf.summary.image('pre_optic',      self.pre_optic_rgb)
+            tf.summary.image('gt_optic',       self.gt_optic_rgb)
             
-            tf.summary.scalar('total_loss',    self.G_loss,                 collections=self.model_collection)
-            tf.summary.scalar('depth_loss',    self.depth_loss,             collections=self.model_collection)
-            tf.summary.scalar('optic_loss',    self.optic_loss,             collections=self.model_collection)
-            tf.summary.scalar('consist_loss',  self.consistency_loss,       collections=self.model_collection)
+            tf.summary.scalar('total_loss',    self.G_loss)
+            tf.summary.scalar('depth_loss',    self.depth_loss)
+            tf.summary.scalar('optic_loss',    self.optic_loss)
+            tf.summary.scalar('consist_loss',  self.consistency_loss)
