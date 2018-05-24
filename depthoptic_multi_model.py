@@ -17,7 +17,7 @@ class Model(object):
         tmp1, tmp2 = tf.split(optic, num_or_size_splits=2, axis=1)               #(-1, 2, height, width)
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
-        self.gt_optic = tf.negative(tf.concat([tmp1, tmp2], axis=3))                          #(-1, height, width, 2)
+        self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
         
         self.reuse_variables  = reuse_variables
 
@@ -59,7 +59,7 @@ class Model(object):
         return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
 
     def get_optic(self, x):
-        return self.conv(x, 2, 3, 1, tf.nn.leaky_relu)
+        return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
 
 # ================= Layer Function =================== #
   #  -----------Pooling Layer------------- #
@@ -262,7 +262,7 @@ class Model(object):
             
     def of_to_rgb(self, optic_flow):
         optic_r, optic_g = tf.split(optic_flow, num_or_size_splits=2, axis=3)
-        extra_b = tf.zeros(shape=tf.shape(optic_r), dtype=tf.float32)
+        extra_b = tf.ones(shape=tf.shape(optic_r), dtype=tf.float32)
         return tf.concat([optic_r, optic_g, extra_b], axis=3)
     
     def build_summaries(self):

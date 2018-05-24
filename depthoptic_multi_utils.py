@@ -59,7 +59,7 @@ def _read_img(img_paths, ch):
     img = tf.image.decode_jpeg(img_string, channels=ch)
     img = tf.image.convert_image_dtype(img, dtype=tf.float32)
     img = tf.image.resize_images(img, [FLAGS.input_height, FLAGS.input_width])
-    return img
+    return img/255
 
 def _data_reader(img1_paths, mask1_paths, img2_paths, mask2_paths, optic_paths):
     img1 = _read_img(img1_paths, 3)
@@ -67,6 +67,7 @@ def _data_reader(img1_paths, mask1_paths, img2_paths, mask2_paths, optic_paths):
     img2 = _read_img(img2_paths, 3)
     mask2 = _read_img(mask2_paths, 1)
     optic = tf.py_func(_read_npy_file, [optic_paths], tf.float32)
+    optic = (optic - (-136.334))/(1.5969058 - (-136.334))
     return img1, mask1, img2, mask2, optic
 
 def create_dataset(file_name):
@@ -74,31 +75,6 @@ def create_dataset(file_name):
     dataset = tf.data.Dataset.from_tensor_slices((img1_paths, mask1_paths, img2_paths, mask2_paths, optic_paths))
     dataset = dataset.map(_data_reader).batch(FLAGS.batch_size)
     return dataset, data_size
-
-def average_gradients(tower_grads):
-    average_grads = []
-    for grad_and_vars in zip(*tower_grads):
-    # Note that each grad_and_vars looks like the following:
-    #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
-        grads = []
-        for g, _ in grad_and_vars:
-            # Add 0 dimension to the gradients to represent the tower.
-            expanded_g = tf.expand_dims(g, 0)
-
-            # Append on a 'tower' dimension which we will average over below.
-            grads.append(expanded_g)
-
-        # Average over the 'tower' dimension.
-        grad = tf.concat(axis=0, values=grads)
-        grad = tf.reduce_mean(grad, 0)
-
-        # Keep in mind that the Variables are redundant because they are shared
-        # across towers. So .. we will just return the first tower's pointer to
-        # the Variable.
-        v = grad_and_vars[0][1]
-        grad_and_var = (grad, v)
-        average_grads.append(grad_and_var)
-    return average_grads
 
 def _get_pixel_value(img, x, y):
     shape = tf.shape(x)
