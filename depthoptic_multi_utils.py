@@ -59,7 +59,7 @@ def _read_img(img_paths, ch):
     img = tf.image.decode_jpeg(img_string, channels=ch)
     img = tf.image.convert_image_dtype(img, dtype=tf.float32)
     img = tf.image.resize_images(img, [FLAGS.input_height, FLAGS.input_width])
-    return img/255
+    return img
 
 def _data_reader(img1_paths, mask1_paths, img2_paths, mask2_paths, optic_paths):
     img1 = _read_img(img1_paths, 3)
@@ -67,7 +67,6 @@ def _data_reader(img1_paths, mask1_paths, img2_paths, mask2_paths, optic_paths):
     img2 = _read_img(img2_paths, 3)
     mask2 = _read_img(mask2_paths, 1)
     optic = tf.py_func(_read_npy_file, [optic_paths], tf.float32)
-    optic = (optic - (-136.334))/(1.5969058 - (-136.334))
     return img1, mask1, img2, mask2, optic
 
 def create_dataset(file_name):
