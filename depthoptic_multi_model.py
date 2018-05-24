@@ -18,7 +18,7 @@ class Model(object):
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
-        self.gt_optic = (self.gt_optic - (-136.334))/(1.5969058 - (-136.334))
+        self.gt_optic = (self.gt_optic - (-136.334))/(210.62727 - (-136.334))
         
         self.max_optic = tf.reduce_max(self.gt_optic)
         self.min_optic = tf.negative(tf.reduce_max(tf.negative(self.gt_optic)))
