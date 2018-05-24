@@ -9,17 +9,20 @@ FLAGS = flags.FLAGS
 
 class Model(object):
     def __init__(self, img1, depth1, img2, depth2, optic, reuse_variables=None):
-        self.input_img1 = img1/255
-        self.input_img2 = img2/255
-        self.gt_depth1  = depth1/255
-        self.gt_depth2  = depth2/255
+        self.input_img1 = img1
+        self.input_img2 = img2
+        self.gt_depth1  = depth1
+        self.gt_depth2  = depth2
         self.raw_gt_optic = optic
         tmp1, tmp2 = tf.split(optic, num_or_size_splits=2, axis=1)               #(-1, 2, height, width)
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
-        self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                        #(-1, height, width, 2)
+        self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
         self.gt_optic = (self.gt_optic - (-136.334))/(1.5969058 - (-136.334))
         
+        self.max_optic = tf.max(gt_optic)
+        self.min_optic = tf.min(gt_optic)
+
         self.reuse_variables  = reuse_variables
 
         self.build_model()

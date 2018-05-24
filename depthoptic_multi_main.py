@@ -37,7 +37,7 @@ flags.DEFINE_string(    'load_network',               '',     'train network com
 flags.DEFINE_string(  'load_directory',               '',     'pretrained model')
 flags.DEFINE_string('output_directory',        'output/',     'directory for output')
 flags.DEFINE_boolean(       'save_gif',            False,     'if set, will save gif')
-flags.DEFINE_boolean(       'save_img',             True,     'if set, will save img')
+flags.DEFINE_boolean(       'save_img',            False,     'if set, will save img')
 
 print("Using GPU:{}".format(FLAGS.using_gpu))
 os.environ['CUDA_VISIBLE_DEVICES']=('{}'.format(FLAGS.using_gpu))
