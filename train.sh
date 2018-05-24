@@ -1,12 +1,12 @@
 #! /bin/bash
 python depthoptic_multi_main.py\
     --mode train\
-    --model_name depthoptic_optic\
+    --model_name depthoptic_multi\
     --datapath_prefix /home/derlee/boris/movie/\
     --datapath_file /home/derlee/depth_estimation/data/train_list.txt\
     --log_directory record/\
     --init_lr 1e-4\
-    --batch_size 8\
+    --batch_size 16\
     --using_gpu 0\
     --input_height 128\
     --input_width 256\

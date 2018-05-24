@@ -77,9 +77,8 @@ def train():
             for epoch in range(FLAGS.total_epochs):
                 sess.run(train_init_op)
                 for step in range(steps_per_epoch):
-                    summary, loss, _, omax, omin = sess.run([model.merge_op, model.total_loss, model.train_op, model.max_optic, model.min_optic])
-                    print("max:{}   min:{}".format(omax, omin))
-                    if (step%int(steps_per_epoch/1)) == 0 and global_step > 0:
+                    summary, loss, _ = sess.run([model.merge_op, model.total_loss, model.train_op])
+                    if (step%int(steps_per_epoch/10)) == 0 and global_step > 0:
                         summary_writer.add_summary(summary, global_step+1)
                         elapsed_time, estimated_time_arrival = record_time(start_time, ((total_steps-global_step)/global_step))
                         print("{} epoch:{}/{} step:{} loss:{:.5f} ET:{:.2f}h ETA:{:.2f}h ({:.4f}%)".format(FLAGS.model_name, \

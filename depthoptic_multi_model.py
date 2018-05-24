@@ -18,11 +18,8 @@ class Model(object):
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
-        self.gt_optic = (self.gt_optic - (-136.334))/(210.62727 - (-136.334))
+        self.gt_optic = (self.gt_optic - (-136.334))/(210.62727 - (-136.334))    # normalize to 0-1
         
-        self.max_optic = tf.reduce_max(self.gt_optic)
-        self.min_optic = tf.negative(tf.reduce_max(tf.negative(self.gt_optic)))
-
         self.reuse_variables  = reuse_variables
 
         self.build_model()
@@ -249,7 +246,7 @@ class Model(object):
             self.depth2_loss              = self.pyramid_loss(self.pre_depth2_pyramid, self.gt_depth2_pyramid)
             self.depth_loss               = self.depth1_loss + self.depth2_loss
             self.optic_loss               = self.pyramid_loss(self.pre_optic_pyramid, self.gt_optic_pyramid)
-            self.total_loss               = self.optic_loss
+            self.total_loss               = self.optic_loss + self.depth_loss
 
         self.train_op = tf.train.AdamOptimizer(FLAGS.init_lr).minimize(self.total_loss)
             
