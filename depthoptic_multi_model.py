@@ -18,7 +18,7 @@ class Model(object):
         tmp1 = tf.reshape(tmp1, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         tmp2 = tf.reshape(tmp2, (-1, FLAGS.input_height, FLAGS.input_width, 1))
         self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
-        self.gt_optic = (self.gt_optic - (-136.334))/(210.62727 - (-136.334))    # normalize to 0-1
+        #self.gt_optic = (self.gt_optic - (-136.334))/(210.62727 - (-136.334))    # normalize to 0-1
         
         self.reuse_variables  = reuse_variables
 
@@ -60,7 +60,7 @@ class Model(object):
         return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
 
     def get_optic(self, x):
-        return self.conv(x, 2, 3, 1, tf.nn.sigmoid)
+        return self.conv(x, 2, 3, 1, tf.nn.leaky_relu)
 
 # ================= Layer Function =================== #
   #  -----------Pooling Layer------------- #
@@ -246,7 +246,7 @@ class Model(object):
             self.depth2_loss              = self.pyramid_loss(self.pre_depth2_pyramid, self.gt_depth2_pyramid)
             self.depth_loss               = self.depth1_loss + self.depth2_loss
             self.optic_loss               = self.pyramid_loss(self.pre_optic_pyramid, self.gt_optic_pyramid)
-            self.total_loss               = self.optic_loss + self.depth_loss
+            self.total_loss               = self.optic_loss + self.depth_loss * 200
 
         self.train_op = tf.train.AdamOptimizer(FLAGS.init_lr).minimize(self.total_loss)
             
@@ -263,7 +263,7 @@ class Model(object):
             
     def of_to_rgb(self, optic_flow):
         optic_r, optic_g = tf.split(optic_flow, num_or_size_splits=2, axis=3)
-        extra_b = tf.ones(shape=tf.shape(optic_r), dtype=tf.float32)
+        extra_b = tf.zeros(shape=tf.shape(optic_r), dtype=tf.float32)
         return tf.concat([optic_r, optic_g, extra_b], axis=3)
     
     def build_summaries(self):

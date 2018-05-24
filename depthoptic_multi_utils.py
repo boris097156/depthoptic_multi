@@ -50,7 +50,6 @@ def _read_npy_file(optic_string):
     resized_data[0, 0, :, :] += _rebin(data[0,0,:,:], (FLAGS.input_height, FLAGS.input_width))
     resized_data[0, 1, :, :] += _rebin(data[0,1,:,:], (FLAGS.input_height, FLAGS.input_width))
     #_rebin(data, (FLAGS.input_heightm FLAGS.input_width, 2))
-    #print(resized_data.shape)
     #print("max:{}   min:{}".format(np.max(resized_data)), np.min(resized_data))
     return resized_data.astype(np.float32)
 

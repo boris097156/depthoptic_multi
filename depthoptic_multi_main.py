@@ -71,7 +71,6 @@ def train():
             start_time = time.time()
             saver = tf.train.Saver()
             global_step = 0
-            print("Training image:{}".format(train_datasize))
             print("Batch size:{}   Step per epoch:{}".format(FLAGS.batch_size, steps_per_epoch))
             print("Total epochs:{}  Total steps:{}".format(FLAGS.total_epochs, total_steps))
             for epoch in range(FLAGS.total_epochs):
