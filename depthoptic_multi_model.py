@@ -20,8 +20,8 @@ class Model(object):
         self.gt_optic = tf.concat([tmp1, tmp2], axis=3)                          #(-1, height, width, 2)
         self.gt_optic = (self.gt_optic - (-136.334))/(1.5969058 - (-136.334))
         
-        self.max_optic = tf.max(gt_optic)
-        self.min_optic = tf.min(gt_optic)
+        self.max_optic = tf.reduce_max(self.gt_optic)
+        self.min_optic = tf.negative(tf.reduce_max(tf.negative(self.gt_optic)))
 
         self.reuse_variables  = reuse_variables
 
