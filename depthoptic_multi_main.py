@@ -59,7 +59,7 @@ def train():
         optic = tf.reshape(optic, [-1, 2, FLAGS.input_height, FLAGS.input_width])
         model = Model(img1, depth1, img2, depth2, optic, None)
 
-        print("Training Data: {}".format(train_datasize))
+        print("Training Data: {} imgs".format(train_datasize*2))
         print("Trainable Parameters: {}".format(count_parameters()))
 
         with tf.Session(config=configure()) as sess:
