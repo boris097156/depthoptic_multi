@@ -1,7 +1,7 @@
 #! /bin/bash
 python depthoptic_multi_main.py\
     --mode train\
-    --model_name depthoptic_multi\
+    --model_name depthoptic_multi_originoptic\
     --datapath_prefix /home/derlee/boris/movie/\
     --datapath_file /home/derlee/depth_estimation/data/train_list.txt\
     --log_directory record/\

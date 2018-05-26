@@ -1,5 +1,5 @@
 #! /bin/bash
-model=depthoptic_multi_0
+model=depthoptic_multi_originoptic
 mkdir output/$model
 mkdir output/$model/img
 mkdir output/$model/gif
