@@ -123,8 +123,9 @@ def test():
     coordinator = tf.train.Coordinator()
     threads     = tf.train.start_queue_runners(sess=sess, coord=coordinator)
     
-    print('Restore weights from {}{}'.format(FLAGS.log_directory, FLAGS.model_name))
-    saver.restore(sess, "/tmp/model.ckpt")
+    saved_model = '{}{}'.format(FLAGS.log_directory, FLAGS.model_name)
+    print('Restore weights from {}'.format(saved_model))
+    saver.restore(sess, "{}".format(saved_model))
     '''
     for net in [FLAGS.load_network]:
         print("Load network : " + net)
