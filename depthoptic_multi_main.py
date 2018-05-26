@@ -103,9 +103,12 @@ def test():
     
     print ('Create model')
     model = Model(img1, depth1, img2, depth2, optic)
+    saver = tf.train.Saver()
+    '''
     train_saver = {}
     for net in [FLAGS.build_network]:
         train_saver[net] = tf.train.Saver(var_list=getattr(model, net + "_vars"))
+    '''
     print ('Create model complete')
     
     #Session Init
@@ -121,9 +124,12 @@ def test():
     threads     = tf.train.start_queue_runners(sess=sess, coord=coordinator)
     
     print('Restore weights from {}{}'.format(FLAGS.log_directory, FLAGS.model_name))
+    saver.restore(sess, "/tmp/model.ckpt")
+    '''
     for net in [FLAGS.load_network]:
         print("Load network : " + net)
         train_saver[net].restore(sess, FLAGS.log_directory + '/' + FLAGS.model_name +'/'+ net.upper())
+    '''
     print('Restore weights complete')
     
     depth_gif_seq = []
