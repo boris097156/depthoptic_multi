@@ -125,7 +125,7 @@ def test():
     
     saved_model = '{}{}'.format(FLAGS.log_directory, FLAGS.model_name)
     print('Restore weights from {}'.format(saved_model))
-    saver.restore(sess, "{}".format(saved_model))
+    saver.restore(sess, "{}/checkpoint".format(saved_model))
     '''
     for net in [FLAGS.load_network]:
         print("Load network : " + net)
