@@ -121,7 +121,7 @@ def test():
     
     saved_model_dir = '{}{}'.format(FLAGS.log_directory, FLAGS.model_name)
     print('Restore weights from {}'.format(saved_model_dir))
-    saver.restore(sess, "{}".format(saved_model_dir))
+    saver.restore(sess, "{}/depthoptic_multi_originoptic-489706".format(saved_model_dir))
     '''
     for net in [FLAGS.load_network]:
         print("Load network : " + net)
