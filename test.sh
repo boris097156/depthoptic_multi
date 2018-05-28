@@ -10,7 +10,7 @@ python depthoptic_multi_main.py\
     --datapath_file /home/derlee/depth_estimation/data/test_list.txt\
     --log_directory record/\
     --batch_size 1\
-    --using_gpu 0\
+    --using_gpu 2\
     --input_height 128\
     --input_width 256\
     --build_network disnet\

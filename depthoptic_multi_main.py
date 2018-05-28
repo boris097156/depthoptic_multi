@@ -90,7 +90,6 @@ def train():
                         global_step=global_step)
             print("{} Complete Training".format(FLAGS.model_name))
 
-
 def test():
     print ('Create dataset')
     test_dataset, test_datasize      = create_dataset(FLAGS.datapath_file)
@@ -111,10 +110,7 @@ def test():
     '''
     print ('Create model complete')
     
-    #Session Init
-    config = tf.ConfigProto(allow_soft_placement=True)
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.Session(config=configure())
 
     sess.run(tf.global_variables_initializer())
     sess.run(tf.local_variables_initializer())
@@ -125,7 +121,7 @@ def test():
     
     saved_model_dir = '{}{}'.format(FLAGS.log_directory, FLAGS.model_name)
     print('Restore weights from {}'.format(saved_model_dir))
-    saver.restore(sess, "{}/{}".format(saved_model_dir, FLAGS.model_name))
+    saver.restore(sess, "{}".format(saved_model_dir))
     '''
     for net in [FLAGS.load_network]:
         print("Load network : " + net)
